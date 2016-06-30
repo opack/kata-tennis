@@ -16,6 +16,8 @@ public class TennisMatchUI {
 	
 	private ScoreBoard scoreBoard;
 	
+	private boolean autoPrint;
+	
 	/**
 	 * Launch the UI
 	 * @throws IOException 
@@ -44,63 +46,115 @@ public class TennisMatchUI {
 	 */
 	public void reset() {
 		scoreBoard = new ScoreBoard();
+		autoPrint = false;
 	}
 	
 	/**
 	 * Prints a message indicating the available commands
 	 */
 	public void printHelp() {
-		System.out.println("Use the following commands :");
-		System.out.println("  1\tScore one point for player 1");
-		System.out.println("  2\tScore one point for player 2");
-		System.out.println("  h\tPrint the list of available commands");
-		System.out.println("  p\tPrint the score board");
-		System.out.println("  q\tQuit the program");
-		System.out.println("  r\tResets the board");
-		System.out.println("Note : you can input multiple commands in one time. Example : '112p' scores 2 points for the player 1, 1 for player 2 and then prints the score board.");
+		System.out.println("Use the following commands :\n");
+		System.out.println("Scores manipulation");
+		System.out.println("  a\tScore one point for player A");
+		System.out.println("  b\tScore one point for player B");
+		System.out.println("  A\tScore 4 points for player A");
+		System.out.println("  B\tScore 4 points for player B");
+		System.out.println("  0\tResets the scores");
+		System.out.println("Program manipulation");
+		System.out.println("  ?\tPrint the list of available commands");
+		System.out.println("  :\tPrint the score board");
+		System.out.println("  !\tSwitch on/off auto print scores after each score modification");
+		System.out.println("  x\tExit the program");
+		System.out.println("Notes :");
+		System.out.println(" - You can construct a string with multiple commands in one time. Example : 'aaBp' scores 2 points for the player A, 4 for player B and then prints the score board.");
+		System.out.println(" - Unknown commands are ignored. Use this to put some spaces ! Example : 0 AAAAA: BBBBB: A: B:");
 		System.out.println();
 	}
 	
+	/**
+	 * Processes the input from the command line
+	 * @throws IOException
+	 */
 	private void processCommands() throws IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		String commands;
+		
 		while ((commands = reader.readLine()) != null) {
 			
 			commands.chars().forEach(command -> {
 				switch (command) {
-				// Quit
-				case 'q':
-					System.exit(0);
-					break;
 				// Score P1
-				case '1':
+				case 'a':
 					scoreBoard.scorePoint(Players.PLAYER_1);
+					autoPrint();
 					break;
+					
 				// Score P2
-				case '2':
+				case 'b':
 					scoreBoard.scorePoint(Players.PLAYER_2);
+					autoPrint();
 					break;
-				// Print board
-				case 'p':
-					print();
+					
+				// Score 4 pts for P1
+				case 'A':
+					for (int score = 0; score < 4; score ++) {
+						scoreBoard.scorePoint(Players.PLAYER_1);
+					}
+					autoPrint();
 					break;
+					
+				// Score 4 pts for P1
+				case 'B':
+					for (int score = 0; score < 4; score ++) {
+						scoreBoard.scorePoint(Players.PLAYER_2);
+					}
+					autoPrint();
+					break;
+				
+				// Reset the scores
+				case '0':
+					reset();
+					autoPrint();
+					break;
+					
 				// Print help
-				case 'h':
+				case '?':
 					printHelp();
 					break;
-				// Reset
-				case 'r':
-					reset();
+					
+				// Print board
+				case ':':
+					printScoreBoard();
 					break;
+					
+				// Switch auto-print
+				case '!':
+					autoPrint = !autoPrint;
+					break;
+					
+				// Quit
+				case 'x':
+					System.exit(0);
+					break;
+					
 				}
 			});
+		}
+	}
+	
+	/**
+	 * If autoPrint is enabled, prints the board
+	 */
+	private void autoPrint() {
+		if (autoPrint) {
+			printScoreBoard();
 		}
 	}
 
 	/**
 	 * Prints the current score board
 	 */
-	public void print() {
+	public void printScoreBoard() {
 		// Retrieve sets
 		List<IntScores> sets = scoreBoard.getFinishedSets();
 		
@@ -121,40 +175,25 @@ public class TennisMatchUI {
 		
 		// Write P1
 		System.out.print("P1\t");
-		
 		System.out.print(gameScoreP1 + "\t");
-		
 		System.out.print(nbGamesWon.player1 + "\t");
-		
 		System.out.print(nbSetsWon.player1 + "\t");
-		
 		sets.forEach(score -> System.out.print(score.player1 + " "));
-		System.out.print("\t");
-		
 		System.out.println();
 		
 		// Write P2
 		System.out.print("P2\t");
-		
 		System.out.print(gameScoreP2 + "\t");
-		
 		System.out.print(nbGamesWon.player2 + "\t");
-		
 		System.out.print(nbSetsWon.player2 + "\t");
-		
 		sets.forEach(score -> System.out.print(score.player2 + " "));;
-		
 		System.out.println();
 		
 		// Write flags
 		System.out.print("\t");
-		
-		System.out.print(scoreBoard.isDeuce() ? "DCE\t" : "");
-		
+		System.out.print(scoreBoard.isDeuce() ? "DCE\t" : "\t");
 		System.out.print(scoreBoard.isTieBreak() ? "TBK\t" : "\t");
-		
 		System.out.println();
-		
 		if (scoreBoard.isFinished()) {
 			System.out.println(scoreBoard.getWinner() + " WINS !!!");
 		}
